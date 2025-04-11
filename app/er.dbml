@@ -1,0 +1,61 @@
+Table city {
+  id int [pk, increment]
+  name varchar(255) [not null]
+  population int [not null]
+  region varchar(255)
+}
+
+Table street {
+  id int [pk, increment]
+  name varchar(255) [not null]
+  city_id int [not null, ref: > city.id]
+  length float
+}
+
+Table company {
+  id int [pk, increment]
+  name varchar(255) [not null]
+  sector varchar(255) [not null]
+  value float [default: 0]
+}
+
+Table premise {
+  id int [pk, increment]
+  street_id int [not null, ref: > street.id]
+  company_id int [not null, ref: > company.id]
+  size float [not null]
+  rent float [not null]
+}
+
+Table employee {
+  id int [pk, increment]
+  name varchar(255) [not null]
+  position varchar(255) [not null]
+  salary float [not null]
+  company_id int [not null, ref: > company.id]
+}
+
+Table customer {
+  id int [pk, increment]
+  name varchar(255) [not null]
+  email varchar(255) [unique]
+  phone varchar(255)
+  city_id int [not null, ref: > city.id]
+}
+
+Table transaction {
+  id int [pk, increment]
+  date datetime [default: `CURRENT_TIMESTAMP`]
+  amount float [not null]
+  company_id int [not null, ref: > company.id]
+  customer_id int [not null, ref: > customer.id]
+}
+
+Table vehicle {
+  id int [pk, increment]
+  model varchar(255) [not null]
+  type enum('motorcycle', 'car', 'truck') [not null]
+  capacity float [not null] // Load capacity in kg
+  company_id int [not null, ref: > company.id]
+  driver_id int [ref: > employee.id]
+}
