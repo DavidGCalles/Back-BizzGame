@@ -1,7 +1,7 @@
 import random
 import heapq
 from app.dao.city_dao import CityDAO
-from app.dao.location_street_customer_dao import LocationDAO, StreetDAO, CustomerDAO
+from app.dao.street_customer_dao import LocationDAO, StreetDAO, CustomerDAO
 
 class CityGenerator:
     def __init__(self):

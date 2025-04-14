@@ -9,7 +9,8 @@ from flask_cors import CORS
 from app.routes.main import main_bp
 from app.routes.data_imports import data_imports_bp
 from app.routes.city_crud import city_bp
-from app.routes.location_street_customer_crud import location_bp, street_bp, customer_bp
+from app.routes.location_crud import location_bp, location_type_bp
+from app.routes.street_customer_crud import street_bp, customer_bp
 from app.routes.generation_crud import generation_bp
 from app.services.db import DBManager
 from config import Config
@@ -42,6 +43,7 @@ def create_app():
     api.register_blueprint(main_bp)
     api.register_blueprint(city_bp)
     api.register_blueprint(location_bp)
+    api.register_blueprint(location_type_bp)
     api.register_blueprint(street_bp)
     api.register_blueprint(customer_bp)
     api.register_blueprint(generation_bp)

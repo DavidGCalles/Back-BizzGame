@@ -6,13 +6,25 @@ CREATE TABLE IF NOT EXISTS city (
     region TEXT
 );
 
--- Table for locations (general-purpose nodes within a city)
+-- Table for location types
+CREATE TABLE IF NOT EXISTS location_types (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL, -- Name of the location type (e.g., "Residential", "Commercial")
+    max_capacity INTEGER NOT NULL, -- Maximum capacity for inhabitants or usage
+    used_capacity INTEGER DEFAULT 0, -- Current used capacity
+    rent REAL, -- Rent for companies operating in this location type
+    maintenance_cost REAL, -- Cost of maintaining this location type
+    description TEXT -- Detailed description of the location type
+);
+
+-- Updated table for locations (general-purpose nodes within a city)
 CREATE TABLE IF NOT EXISTS location (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL, -- Name of the location (e.g., "Node A", "Intersection 1")
     city_id INTEGER NOT NULL, -- The city this location belongs to
-    type TEXT NOT NULL, -- Type of location (e.g., "junction", "residential", "commercial")
-    FOREIGN KEY (city_id) REFERENCES city(id) ON DELETE CASCADE
+    location_type_id INTEGER NOT NULL, -- The type of this location
+    FOREIGN KEY (city_id) REFERENCES city(id) ON DELETE CASCADE,
+    FOREIGN KEY (location_type_id) REFERENCES location_types(id) ON DELETE CASCADE
 );
 
 -- Updated table for streets to connect locations

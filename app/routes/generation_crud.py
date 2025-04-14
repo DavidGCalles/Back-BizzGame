@@ -2,7 +2,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from app.services.city_generation import CityGenerator
 from app.dao.city_dao import CityDAO
-from app.dao.location_street_customer_dao import LocationDAO, StreetDAO, CustomerDAO
+from app.dao.street_customer_dao import LocationDAO, StreetDAO, CustomerDAO
 from app.models.base_schema import MessageResponseSchema
 from app.models.city_schemas import GenerateCitySchema  # Import the schema
 

@@ -1,15 +1,6 @@
 from marshmallow import fields
 from app.models.base_schema import BaseSchema
 
-class LocationSchema(BaseSchema):
-    """
-    LocationSchema: Class to manage the schema of locations.
-    """
-    id = fields.Int(required=False, metadata={"description": "ID of the location"})
-    name = fields.Str(required=True, metadata={"description": "Name of the location"})
-    city_id = fields.Int(required=True, metadata={"description": "ID of the city the location belongs to"})
-    type = fields.Str(required=True, metadata={"description": "Type of the location (e.g., junction, residential)"})
-
 class StreetSchema(BaseSchema):
     """
     StreetSchema: Class to manage the schema of streets.
