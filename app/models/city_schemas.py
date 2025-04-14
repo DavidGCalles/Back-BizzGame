@@ -25,3 +25,20 @@ class PostCitySchema(BaseSchema):
     name = fields.Str(required=True, metadata={"description": "Name of the city"})
     population = fields.Int(required=True, metadata={"description": "Population of the city"})
     region = fields.Str(required=False, metadata={"description": "Region of the city"})
+
+class GenerateCitySchema(BaseSchema):
+    """
+    GenerateCitySchema: Class to validate city generation input.
+    """
+    num_cities = fields.Int(required=True, 
+                            validate=lambda x: x > 0,
+                            metadata={"description": "Number of cities to generate."})
+    locations_per_city = fields.Int(required=True,
+                                    validate=lambda x: x > 0,
+                                    metadata={"description": "Number of locations per city."})
+    streets_per_city = fields.Int(required=True,
+                                  validate=lambda x: x > 0,
+                                  metadata={"description": "Number of streets per city."})
+    customers_per_city = fields.Int(required=True,
+                                    validate=lambda x: x > 0,
+                                    metadata={"description": "Number of customers per city."})

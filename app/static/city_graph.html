@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Graph</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Optional Bootstrap JavaScript (for interactive components) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #container {
+            display: flex;
+            align-items: flex-start; /* Alinea los elementos al inicio verticalmente */
+            gap: 20px; /* Espaciado entre el div y el canvas */
+        }
+        #details {
+            width: 20%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        #graph {
+            flex-grow: 1; /* El canvas ocupará el espacio restante */
+            height: 600px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container my-4">
+        <h1 class="text-center mb-4">City Graph Viewer</h1>
+        <div class="mb-3">
+            <label for="city-select" class="form-label">Select a City:</label>
+            <select id="city-select" class="form-select">
+                <option value="">-- Select a City --</option>
+            </select>
+        </div>
+        <div class="row">
+            <div id="details" class="col-md-3 border p-3 bg-white">
+                <!-- Details will be dynamically populated here -->
+            </div>
+            <div class="col-md-9">
+                <canvas id="graph" class="w-100"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+        const host = "http://127.0.0.1:5000";
+
+        // Fetch all cities and populate the dropdown
+        async function fetchCities() {
+            try {
+                const response = await fetch(`${host}/city`);
+                const cities = await response.json();
+                const citySelect = document.getElementById("city-select");
+
+                cities.forEach(city => {
+                    const option = document.createElement("option");
+                    option.value = city[0]; // Assuming city.id is the unique identifier
+                    option.textContent = city[1];
+                    citySelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error fetching cities:", error);
+            }
+        }
+
+        // Fetch all data (locations, streets, customers) and filter by city_id
+        async function fetchCityData(cityId) {
+            try {
+                const locationsResponse = await fetch(`${host}/location`);
+                const streetsResponse = await fetch(`${host}/street`);
+                const customersResponse = await fetch(`${host}/customer`);
+
+                const allLocations = await locationsResponse.json();
+                const allStreets = await streetsResponse.json();
+                const allCustomers = await customersResponse.json();
+
+                // Filter data by city_id
+                const locations = allLocations.filter(location => location[2] === parseInt(cityId));
+                const streets = allStreets.filter(street => street[2] === parseInt(cityId));
+                
+                console.log("Locations:", locations);
+                console.log("Streets:", streets);
+                
+                drawGraph(locations, streets);
+            } catch (error) {
+                console.error("Error fetching city data:", error);
+            }
+        }
+
+        function drawGraph(locations, streets) {
+            const canvas = document.getElementById("graph");
+            const ctx = canvas.getContext("2d");
+
+            // Adjust canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) / 3;
+
+            // Map to store positions for each location
+            const positions = {};
+
+            // Arrange locations in a circular layout
+            locations.forEach((location, index) => {
+                const angle = (2 * Math.PI * index) / locations.length;
+                positions[location[0]] = {
+                    x: centerX + radius * Math.cos(angle),
+                    y: centerY + radius * Math.sin(angle),
+                    name: location[1],
+                };
+            });
+
+            // Draw streets
+            streets.forEach(street => {
+                const start = positions[street[3]]; // location_id_start
+                const end = positions[street[4]];   // location_id_end;
+
+                if (start && end) {
+                    // Calculate color based on length (green to red)
+                    const maxLength = Math.max(...streets.map(s => s[5])); // Find the maximum length
+                    const minLength = Math.min(...streets.map(s => s[5])); // Find the minimum length
+                    const normalizedLength = (street[5] - minLength) / (maxLength - minLength); // Normalize length
+                    const red = Math.floor(255 * normalizedLength);
+                    const green = Math.floor(255 * (1 - normalizedLength));
+                    const color = `rgb(${red}, ${green}, 0)`;
+
+                    ctx.beginPath();
+                    ctx.moveTo(start.x, start.y);
+                    ctx.lineTo(end.x, end.y);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 4; // Increase line thickness
+                    ctx.stroke();
+                }
+            });
+
+            // Draw locations
+            locations.forEach(location => {
+                const pos = positions[location[0]];
+                if (pos) {
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 8, 0, 2 * Math.PI);
+                    ctx.fillStyle = "#007bff";
+                    ctx.fill();
+                    ctx.strokeStyle = "#003f7f";
+                    ctx.stroke();
+                }
+            });
+
+            // Add hover effect
+            canvas.addEventListener("mousemove", event => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+
+                // Clear the canvas and redraw everything
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Redraw streets
+                streets.forEach(street => {
+                    const start = positions[street[3]];
+                    const end = positions[street[4]];
+
+                    if (start && end) {
+                        const maxLength = Math.max(...streets.map(s => s[5]));
+                        const minLength = Math.min(...streets.map(s => s[5]));
+                        const normalizedLength = (street[5] - minLength) / (maxLength - minLength);
+                        const red = Math.floor(255 * normalizedLength);
+                        const green = Math.floor(255 * (1 - normalizedLength));
+                        const color = `rgb(${red}, ${green}, 0)`;
+
+                        ctx.beginPath();
+                        ctx.moveTo(start.x, start.y);
+                        ctx.lineTo(end.x, end.y);
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = 4;
+                        ctx.stroke();
+
+                        // Check if mouse is near the street (hover detection)
+                        const distance = Math.abs(
+                            (end.y - start.y) * mouseX - (end.x - start.x) * mouseY + end.x * start.y - end.y * start.x
+                        ) / Math.sqrt(Math.pow(end.y - start.y, 2) + Math.pow(end.x - start.x, 2));
+
+                        if (distance < 5) { // Reduced hover detection area
+                            ctx.font = "12px Arial";
+                            ctx.fillStyle = "#000";
+                            ctx.fillText(street[1], (start.x + end.x) / 2 + 10, (start.y + end.y) / 2 - 10);
+                        }
+                    }
+                });
+
+                // Redraw locations and check for hover
+                locations.forEach(location => {
+                    const pos = positions[location[0]];
+                    if (pos) {
+                        ctx.beginPath();
+                        ctx.arc(pos.x, pos.y, 8, 0, 2 * Math.PI);
+                        ctx.fillStyle = "#007bff";
+                        ctx.fill();
+                        ctx.strokeStyle = "#003f7f";
+                        ctx.stroke();
+
+                        // Check if mouse is near the node
+                        const distance = Math.sqrt(
+                            Math.pow(mouseX - pos.x, 2) + Math.pow(mouseY - pos.y, 2)
+                        );
+                        if (distance < 10) {
+                            // Show location name
+                            ctx.font = "12px Arial";
+                            ctx.fillStyle = "#000";
+                            ctx.fillText(pos.name, pos.x + 10, pos.y - 10);
+                        }
+                    }
+                });
+            });
+
+            // Add click effect
+            canvas.addEventListener("click", event => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+
+                let detailsUpdated = false;
+
+                // Check if a street is clicked
+                streets.forEach(street => {
+                    const start = positions[street[3]];
+                    const end = positions[street[4]];
+
+                    if (start && end) {
+                        const distance = Math.abs(
+                            (end.y - start.y) * mouseX - (end.x - start.x) * mouseY + end.x * start.y - end.y * start.x
+                        ) / Math.sqrt(Math.pow(end.y - start.y, 2) + Math.pow(end.x - start.x, 2));
+
+                        if (distance < 5) { // Reduced click detection area
+                            const detailsDiv = document.getElementById("details");
+                            detailsDiv.innerHTML = `
+                                <h3>Street Details</h3>
+                                <p><strong>ID:</strong> ${street[0]}</p>
+                                <p><strong>Name:</strong> ${street[1]}</p>
+                                <p><strong>City ID:</strong> ${street[2]}</p>
+                                <p><strong>Start Location ID:</strong> 
+                                    <a href="#" onclick="showLocationDetails(${street[3]})">${street[3]}</a></p>
+                                <p><strong>End Location ID:</strong> 
+                                    <a href="#" onclick="showLocationDetails(${street[4]})">${street[4]}</a></p>
+                                <p><strong>Length/Traffic Density:</strong> ${street[5]}</p>
+                            `;
+                            detailsUpdated = true;
+                        }
+                    }
+                });
+
+                // Check if a location is clicked
+                if (!detailsUpdated) {
+                    locations.forEach(location => {
+                        const pos = positions[location[0]];
+                        if (pos) {
+                            const distance = Math.sqrt(
+                                Math.pow(mouseX - pos.x, 2) + Math.pow(mouseY - pos.y, 2)
+                            );
+                            if (distance < 10) { // Increase click detection area
+                                const detailsDiv = document.getElementById("details");
+                                detailsDiv.innerHTML = `
+                                    <h3>Location Details</h3>
+                                    <p><strong>ID:</strong> ${location[0]}</p>
+                                    <p><strong>Name:</strong> ${location[1]}</p>
+                                    <p><strong>City ID:</strong> ${location[2]}</p>
+                                    <p><strong>Location Type:</strong> ${location[3]}</p>
+                                `;
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        function showLocationDetails(locationId) {
+            const location = locations.find(loc => loc[0] === locationId);
+            if (location) {
+                const detailsDiv = document.getElementById("details");
+                detailsDiv.innerHTML = `
+                    <h3>Location Details</h3>
+                    <p><strong>ID:</strong> ${location[0]}</p>
+                    <p><strong>Name:</strong> ${location[1]}</p>
+                    <p><strong>City ID:</strong> ${location[2]}</p>
+                    <p><strong>Location Type:</strong> ${location[3]}</p>
+                `;
+            }
+        }
+
+        // Event listener for city selection
+        document.getElementById("city-select").addEventListener("change", event => {
+            const cityId = event.target.value;
+            if (cityId) {
+                fetchCityData(cityId);
+            }
+        });
+
+        // Initialize
+        fetchCities();
+    </script>
+</body>
+</html>

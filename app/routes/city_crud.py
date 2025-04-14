@@ -74,3 +74,16 @@ class CityResource(MethodView):
         if city_dao.generic_delete("id", city_id):
             return {"message": "City deleted successfully"}, 200
         return {"message": "City not found"}, 404
+    
+@city_bp.route('/city/generate')
+class CityGenerate(MethodView):
+    @city_bp.response(200, MessageResponseSchema, description="Cities successfully generated.")
+    def post(self):
+        """
+        POST method: Generate cities.
+        """
+        generator = CityGenerator()
+        cities = [generator.generate_city() for _ in range(5)]  # Generate 5 cities
+        for city in cities:
+            city_dao.generic_insert(city)
+        return {"message": "Cities generated successfully"}, 200

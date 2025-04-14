@@ -5,10 +5,19 @@ Table city {
   region varchar(255)
 }
 
+Table location {
+  id int [pk, increment]
+  name varchar(255) [not null] // Name of the location (e.g., "Node A", "Intersection 1")
+  city_id int [not null, ref: > city.id] // The city this location belongs to
+  type varchar(255) [not null] // Type of location (e.g., "junction", "residential", "commercial")
+}
+
 Table street {
   id int [pk, increment]
   name varchar(255) [not null]
   city_id int [not null, ref: > city.id]
+  start_location_id int [not null, ref: > location.id] // Starting location of the street
+  end_location_id int [not null, ref: > location.id] // Ending location of the street
   length float
 }
 
@@ -17,14 +26,6 @@ Table company {
   name varchar(255) [not null]
   sector varchar(255) [not null]
   value float [default: 0]
-}
-
-Table premise {
-  id int [pk, increment]
-  street_id int [not null, ref: > street.id]
-  company_id int [not null, ref: > company.id]
-  size float [not null]
-  rent float [not null]
 }
 
 Table employee {
@@ -43,7 +44,7 @@ Table customer {
   city_id int [not null, ref: > city.id]
 }
 
-Table transaction {
+Table sale {
   id int [pk, increment]
   date datetime [default: `CURRENT_TIMESTAMP`]
   amount float [not null]

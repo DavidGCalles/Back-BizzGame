@@ -6,13 +6,26 @@ CREATE TABLE IF NOT EXISTS city (
     region TEXT
 );
 
--- Table for streets
+-- Table for locations (general-purpose nodes within a city)
+CREATE TABLE IF NOT EXISTS location (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL, -- Name of the location (e.g., "Node A", "Intersection 1")
+    city_id INTEGER NOT NULL, -- The city this location belongs to
+    type TEXT NOT NULL, -- Type of location (e.g., "junction", "residential", "commercial")
+    FOREIGN KEY (city_id) REFERENCES city(id) ON DELETE CASCADE
+);
+
+-- Updated table for streets to connect locations
 CREATE TABLE IF NOT EXISTS street (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     city_id INTEGER NOT NULL,
-    length REAL,
-    FOREIGN KEY (city_id) REFERENCES city(id) ON DELETE CASCADE
+    start_location_id INTEGER NOT NULL, -- Starting location of the street
+    end_location_id INTEGER NOT NULL, -- Ending location of the street
+    length REAL, -- Length of the street
+    FOREIGN KEY (city_id) REFERENCES city(id) ON DELETE CASCADE,
+    FOREIGN KEY (start_location_id) REFERENCES location(id) ON DELETE CASCADE,
+    FOREIGN KEY (end_location_id) REFERENCES location(id) ON DELETE CASCADE
 );
 
 -- Table for companies
@@ -21,17 +34,6 @@ CREATE TABLE IF NOT EXISTS company (
     name TEXT NOT NULL,
     sector TEXT NOT NULL,
     value REAL DEFAULT 0
-);
-
--- Table for commercial premises
-CREATE TABLE IF NOT EXISTS premise (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    street_id INTEGER NOT NULL,
-    company_id INTEGER NOT NULL,
-    size REAL NOT NULL,
-    rent REAL NOT NULL,
-    FOREIGN KEY (street_id) REFERENCES street(id) ON DELETE CASCADE,
-    FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE CASCADE
 );
 
 -- Table for employees

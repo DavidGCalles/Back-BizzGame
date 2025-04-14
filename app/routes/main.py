@@ -55,3 +55,16 @@ def check_blueprints():
         return jsonify({"message": "Blueprints are correctly registered", "blueprints": blueprints_info}), 200
     else:
         return jsonify({"message": "Blueprints are not correctly registered"}), 503
+    
+@main_bp.route('/city-graph', methods=["GET"])
+@main_bp.response(200, {"message": {"type": "string"}}, description="City graph is correctly generated.")
+@main_bp.response(503, {"message": {"type": "string"}}, description="City graph is not correctly generated.")
+def serve_city_graph():
+    """
+    Serves the city graph html file.
+    """
+    graph_path = os.path.join(current_app.root_path, 'static', 'city_graph.html')
+    if os.path.exists(graph_path):
+        return send_from_directory(os.path.dirname(graph_path), os.path.basename(graph_path))
+    else:
+        return jsonify({"message": "City graph not found"}), 503
