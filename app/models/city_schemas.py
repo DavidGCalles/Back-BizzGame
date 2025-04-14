@@ -30,15 +30,34 @@ class GenerateCitySchema(BaseSchema):
     """
     GenerateCitySchema: Class to validate city generation input.
     """
+    max_population = fields.Int(required=True, 
+                            validate=lambda x: x > 0,
+                            metadata={"description": "Maximum population allowed in the city."})
+    max_locations = fields.Int(required=True, 
+                            validate=lambda x: x > 0,
+                            metadata={"description": "Maximum number of locations allowed in the city."})
+    residential_rate = fields.Float(required=True, 
+                            validate=lambda x: 0 <= x <= 1,
+                            metadata={"description": "Rate of residential locations."})
+    commercial_rate = fields.Float(required=True, 
+                            validate=lambda x: 0 <= x <= 1,
+                            metadata={"description": "Rate of commercial locations."})
+    difficulty_level = fields.Str(required=True, 
+                            validate=lambda x: x in ["easy", "medium", "hard"],
+                            metadata={"description": "Difficulty level for city generation."})
+
+class RandomCitySchema(BaseSchema):
+    """
+    """
     num_cities = fields.Int(required=True, 
                             validate=lambda x: x > 0,
                             metadata={"description": "Number of cities to generate."})
-    locations_per_city = fields.Int(required=True,
-                                    validate=lambda x: x > 0,
-                                    metadata={"description": "Number of locations per city."})
-    streets_per_city = fields.Int(required=True,
-                                  validate=lambda x: x > 0,
-                                  metadata={"description": "Number of streets per city."})
-    customers_per_city = fields.Int(required=True,
-                                    validate=lambda x: x > 0,
-                                    metadata={"description": "Number of customers per city."})
+
+class GenerateBoundedCitySchema(BaseSchema):
+    """
+    GenerateBoundedCitySchema: Class to validate bounded city generation input.
+    """
+    difficulty_level = fields.Str(required=True,
+                            validate=lambda x: x in ["easy", "medium", "hard"],
+                            metadata={"description": "Difficulty level for city generation."})
+    

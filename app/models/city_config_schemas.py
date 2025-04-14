@@ -26,6 +26,11 @@ class CityConfigSchema(BaseSchema):
         validate=lambda x: x > 0,
         metadata={"description": "Maximum population allowed in the city"}
     )
+    max_locations = fields.Int(
+        required=True,
+        validate=lambda x: x > 0,
+        metadata={"description": "Maximum number of locations allowed in the city"}
+    )
     max_companies = fields.Int(
         required=True,
         validate=lambda x: x > 0,
@@ -59,6 +64,11 @@ class PostUpdateCityConfigSchema(BaseSchema):
         required=True,
         validate=lambda x: x > 0,
         metadata={"description": "Maximum population allowed in the city"}
+    )
+    max_locations = fields.Int(
+        required=True,
+        validate=lambda x: x > 0,
+        metadata={"description": "Maximum number of locations allowed in the city"}
     )
     max_companies = fields.Int(
         required=True,

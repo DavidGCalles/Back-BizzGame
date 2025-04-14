@@ -78,6 +78,7 @@ Table city_configs {
   residential_rate float [not null, default: 0.7] // Rate of residential locations
   commercial_rate float [not null, default: 0.3] // Rate of commercial locations
   max_population int [not null] // Maximum population allowed in the city
+  max_locations int [not null] // Maximum number of locations allowed in the city
   max_companies int [not null] // Maximum number of companies allowed in the city
   description text // Additional details about the configuration
 }

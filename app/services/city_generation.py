@@ -1,7 +1,9 @@
 import random
 import heapq
 from app.dao.city_dao import CityDAO
-from app.dao.street_customer_dao import LocationDAO, StreetDAO, CustomerDAO
+from app.dao.street_customer_dao import StreetDAO, CustomerDAO
+from app.dao.city_config_dao import CityConfigDAO
+from app.dao.location_dao import LocationDAO, LocationTypeDAO
 
 class CityGenerator:
     def __init__(self):
@@ -13,46 +15,50 @@ class CityGenerator:
 
         # DAO instances
         self.city_dao = CityDAO()
+        self.city_config_dao = CityConfigDAO()
         self.location_dao = LocationDAO()
         self.street_dao = StreetDAO()
         self.customer_dao = CustomerDAO()
+        self.location_type_dao = LocationTypeDAO()
 
     def generate_random_name(self, base_name):
         """
         Generate a random name based on the base name plus a random number
         """
-        random_number = random.randint(1, 1000)
+        random_number = random.randint(1, 500)
         return f"{base_name}{random_number}"
 
-    def generate_city(self):
-        base_name = "City_"
+    def generate_city(self, values=None):
+        if values is None:
+            raise ValueError("Values must be provided when random is False")
+        base_name = f"City_{values['difficulty_level']+'_'}"
         unique_name = self.generate_random_name(base_name)
         city = {
-            "id": unique_name.split("_")[1],
+            "id": unique_name.split("_")[2],
             "name": unique_name,
-            "population": random.randint(1000, 1000000),
+            "population": values["max_population"]* values["residential_rate"],
             "region": random.choice(["North", "South", "East", "West"])
         }
         self.city_id_counter += 1
         return city
 
-    def generate_location(self, city_id, location_type="junction"):
-        base_name = "Location_"
+    def generate_location(self, city_id:int, location_type: dict|None = None):
+        base_name = f"Location_{location_type['name']+'_' if location_type is not None else ''}"
         unique_name = self.generate_random_name(base_name)
         location = {
-            "id": unique_name.split("_")[1],
+            "id": int(f"{city_id}{self.location_id_counter}"),
             "name": unique_name,
             "city_id": city_id,
-            "type": location_type
+            "location_type_id": location_type["id"] if location_type else None,
         }
         self.location_id_counter += 1
         return location
 
     def generate_street(self, city_id, start_location_id, end_location_id):
-        base_name = "Street_"
+        base_name = f"Street_{city_id}_"
         unique_name = self.generate_random_name(base_name)
         street = {
-            "id": unique_name.split("_")[1],
+            "id": int(f"{city_id}{self.street_id_counter}"),
             "name": unique_name,
             "city_id": city_id,
             "start_location_id": start_location_id,
@@ -63,56 +69,69 @@ class CityGenerator:
         return street
 
     def generate_customer(self, city_id):
-        base_name = "Customer_"
+        base_name = f"Customer_{city_id}"
         unique_name = self.generate_random_name(base_name)
         customer = {
-            "id": unique_name.split("_")[1],
+            "id": int(f"{city_id}{self.customer_id_counter}"),
             "name": unique_name,
-            "email": f"customer{self.customer_id_counter}@example.com",
+            "email": f"customer_{city_id}_{self.customer_id_counter}@example.com",
             "phone": f"+1-{random.randint(100, 999)}-{random.randint(1000, 9999)}",
             "city_id": city_id
         }
         self.customer_id_counter += 1
         return customer
 
-    def generate_city_data(self, num_cities=1, locations_per_city=5, streets_per_city=5, customers_per_city=10):
+    def generate_city_data(self, rates=None):
+        """
+        Generate city data including cities, locations, streets, and customers.
+        rates object is composed of:
+        - max_population: Maximum population allowed in the city
+        - max_locations: Maximum number of locations allowed in the city
+        - residential_rate: Rate of residential locations
+        - commercial_rate: Rate of commercial locations
+        - difficulty_level: Difficulty level for city generation
+        """
         cities = []
         locations = []
         streets = []
         customers = []
 
-        for _ in range(num_cities):
-            city = self.generate_city()
-            cities.append(city)
-
-            # Generate locations for the city
-            city_locations = []
-            for _ in range(locations_per_city):
-                location = self.generate_location(city["id"])
-                locations.append(location)
-                city_locations.append(location)
-
-            # Generate streets connecting random locations
-            for _ in range(streets_per_city):
-                start_location = random.choice(city_locations)
-                end_location = random.choice(city_locations)
-                if start_location["id"] != end_location["id"]:  # Avoid self-loops
-                    street = self.generate_street(city["id"], start_location["id"], end_location["id"])
-                    streets.append(street)
-                else:
-                    while start_location["id"] == end_location["id"]:
-                        end_location = random.choice(city_locations)
-                    street = self.generate_street(city["id"], start_location["id"], end_location["id"])
-                    streets.append(street)
-            # Clean location nodes that are not connected to any street
-            for location in city_locations:
-                if not any(street["start_location_id"] == location["id"] or
-                           street["end_location_id"] == location["id"] for street in streets):
-                    locations.remove(location)
-            # Generate customers for the city
-            for _ in range(customers_per_city):
-                customer = self.generate_customer(city["id"])
-                customers.append(customer)
+        if rates is None:
+            residential_rate = random.uniform(0.3, 0.7)
+            commercial_rate = 1 - residential_rate
+            rates = {
+                "max_population": random.randint(90, 200),
+                "max_locations": random.randint(5, 20),
+                "residential_rate": residential_rate,
+                "commercial_rate": commercial_rate,
+                "difficulty_level": random.choice(["easy", "medium", "hard"]),
+            }
+        city = self.generate_city(values=rates)
+        cities.append(city)
+        residential_locations = int(rates["max_locations"] * rates["residential_rate"])
+        commercial_locations = int(rates["max_locations"] * rates["commercial_rate"])
+        total_locations = residential_locations + commercial_locations
+        location_types = self.location_type_dao.get_all_by_basic_type()
+        for i in range(total_locations):
+            location_type = None
+            if i < residential_locations:
+                location_type = random.choice(location_types["Residential"])
+            elif i >= residential_locations and i < total_locations:
+                location_type = random.choice(location_types["Business"])
+            else:
+                raise ValueError("Invalid location type assignment")
+            location = self.generate_location(city["id"], location_type)
+            locations.append(location)
+        for i in range(int(rates["max_population"] * rates["residential_rate"])):
+            customer = self.generate_customer(city["id"])
+            customers.append(customer)
+        for i in range(len(locations)):
+            start_location = locations[i]
+            end_location = random.choice(locations)
+            while start_location["id"] == end_location["id"]:
+                end_location = random.choice(locations)
+            street = self.generate_street(city["id"], start_location["id"], end_location["id"])
+            streets.append(street)
 
         # Build the graph for route calculations
         self.build_graph(streets)
@@ -124,6 +143,18 @@ class CityGenerator:
             "customers": customers
         }
 
+    def generate_bounded_city_data(self, difficulty_level):
+        """
+        Generate bounded city data based on difficulty level.
+        """
+        try:
+            config_rates = self.city_config_dao.get_single_city_config_by_difficulty(difficulty_level)
+        except Exception as e:
+            print(f"Error fetching city configuration: {e}")
+            return None
+        print(config_rates)
+        return self.generate_city_data(config_rates)
+    
     def build_graph(self, streets):
         """
         Build a graph representation from the streets data.

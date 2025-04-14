@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS city_configs (
     residential_rate REAL NOT NULL DEFAULT 0.7, -- Rate of residential locations
     commercial_rate REAL NOT NULL DEFAULT 0.3, -- Rate of commercial locations
     max_population INTEGER NOT NULL, -- Maximum population allowed in the city
+    max_locations INTEGER NOT NULL, -- Maximum number of locations allowed in the city
     max_companies INTEGER NOT NULL, -- Maximum number of companies allowed in the city
     description TEXT -- Additional details about the configuration
 );
