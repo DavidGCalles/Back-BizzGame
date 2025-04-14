@@ -2,7 +2,7 @@ from flask.views import MethodView
 from flask import jsonify
 from flask_smorest import Blueprint
 from app.dao.city_config_dao import CityConfigDAO
-from app.models.city_config_schemas import CityConfigSchema
+from app.models.city_config_schemas import CityConfigSchema, PostUpdateCityConfigSchema
 from app.models.base_schema import SuccessResponseSchema, MessageResponseSchema
 
 # Blueprint
@@ -23,7 +23,7 @@ class CityConfigCollection(MethodView):
         data = city_config_dao.generic_get_all()
         return jsonify(data), 200
 
-    @city_config_bp.arguments(CityConfigSchema)
+    @city_config_bp.arguments(PostUpdateCityConfigSchema)
     @city_config_bp.response(201, MessageResponseSchema, description="New city configuration successfully inserted.")
     @city_config_bp.response(503, MessageResponseSchema, description="Error inserting the city configuration.")
     @city_config_bp.doc(summary="Insert new city configuration", description="Insert a new city configuration into the database.")
@@ -51,7 +51,7 @@ class CityConfigResource(MethodView):
             return jsonify(config), 200
         return {"message": "City configuration not found"}, 404
 
-    @city_config_bp.arguments(CityConfigSchema)
+    @city_config_bp.arguments(PostUpdateCityConfigSchema)
     @city_config_bp.response(200, SuccessResponseSchema, description="City configuration successfully updated.")
     @city_config_bp.response(404, MessageResponseSchema, description="City configuration not found.")
     @city_config_bp.doc(summary="Update a city configuration", description="Update an existing city configuration by its ID.")
