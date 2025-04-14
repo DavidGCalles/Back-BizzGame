@@ -90,3 +90,14 @@ CREATE TABLE IF NOT EXISTS vehicle (
     FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE CASCADE,
     FOREIGN KEY (driver_id) REFERENCES employee(id) ON DELETE SET NULL
 );
+
+-- Table for city configurations
+CREATE TABLE IF NOT EXISTS city_configs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    difficulty_level TEXT NOT NULL CHECK (difficulty_level IN ('easy', 'medium', 'hard')), -- Difficulty level for city generation
+    residential_rate REAL NOT NULL DEFAULT 0.7, -- Rate of residential locations
+    commercial_rate REAL NOT NULL DEFAULT 0.3, -- Rate of commercial locations
+    max_population INTEGER NOT NULL, -- Maximum population allowed in the city
+    max_companies INTEGER NOT NULL, -- Maximum number of companies allowed in the city
+    description TEXT -- Additional details about the configuration
+);

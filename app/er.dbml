@@ -3,6 +3,7 @@ Table city {
   name varchar(255) [not null]
   population int [not null]
   region varchar(255)
+  city_config_id int [ref: > city_configs.id, null] // Reference to city_configs
 }
 
 Table location_types {
@@ -69,4 +70,14 @@ Table vehicle {
   capacity float [not null] // Load capacity in kg
   company_id int [not null, ref: > company.id]
   driver_id int [ref: > employee.id, null] // Relation to the employee who drives the vehicle
+}
+
+Table city_configs {
+  id int [pk, increment]
+  difficulty_level enum('easy', 'medium', 'hard') [not null] // Difficulty level for city generation
+  residential_rate float [not null, default: 0.7] // Rate of residential locations
+  commercial_rate float [not null, default: 0.3] // Rate of commercial locations
+  max_population int [not null] // Maximum population allowed in the city
+  max_companies int [not null] // Maximum number of companies allowed in the city
+  description text // Additional details about the configuration
 }
