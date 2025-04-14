@@ -23,12 +23,9 @@ class CityGenerator:
         """
         random_number = random.randint(1, 1000)
         return f"{base_name}{random_number}"
-            
-
-        
 
     def generate_city(self):
-        base_name = f"City_"
+        base_name = "City_"
         unique_name = self.generate_random_name(base_name)
         city = {
             "id": unique_name.split("_")[1],
@@ -40,7 +37,7 @@ class CityGenerator:
         return city
 
     def generate_location(self, city_id, location_type="junction"):
-        base_name = f"Location_"
+        base_name = "Location_"
         unique_name = self.generate_random_name(base_name)
         location = {
             "id": unique_name.split("_")[1],
@@ -52,7 +49,7 @@ class CityGenerator:
         return location
 
     def generate_street(self, city_id, start_location_id, end_location_id):
-        base_name = f"Street_"
+        base_name = "Street_"
         unique_name = self.generate_random_name(base_name)
         street = {
             "id": unique_name.split("_")[1],
@@ -66,7 +63,7 @@ class CityGenerator:
         return street
 
     def generate_customer(self, city_id):
-        base_name = f"Customer_"
+        base_name = "Customer_"
         unique_name = self.generate_random_name(base_name)
         customer = {
             "id": unique_name.split("_")[1],
