@@ -22,12 +22,22 @@ class SearchStreetSchema(BaseSchema):
     start_location_id = fields.Int(required=False, metadata={"description": "ID of the starting location"})
     end_location_id = fields.Int(required=False, metadata={"description": "ID of the ending location"})
 
-class CustomerSchema(BaseSchema):
+class UpdateStreetSchema(BaseSchema):
     """
-    CustomerSchema: Class to manage the schema of customers.
+    UpdateStreetSchema: Class to manage the schema of the streets to update.
     """
-    id = fields.Int(required=False, metadata={"description": "ID of the customer"})
-    name = fields.Str(required=True, metadata={"description": "Name of the customer"})
-    email = fields.Email(required=True, metadata={"description": "Email of the customer"})
-    phone = fields.Str(required=True, metadata={"description": "Phone number of the customer"})
-    city_id = fields.Int(required=True, metadata={"description": "ID of the city the customer belongs to"})
+    name = fields.Str(required=False, metadata={"description": "Updated name of the street"})
+    city_id = fields.Int(required=False, metadata={"description": "ID of the city the street belongs to"})
+    start_location_id = fields.Int(required=False, metadata={"description": "ID of the starting location"})
+    end_location_id = fields.Int(required=False, metadata={"description": "ID of the ending location"})
+    length = fields.Float(required=False, metadata={"description": "Length of the street"})
+
+class PostStreetSchema(BaseSchema):
+    """
+    PostStreetSchema: Class to manage the schema of the streets to insert.
+    """
+    name = fields.Str(required=True, metadata={"description": "Name of the street"})
+    city_id = fields.Int(required=True, metadata={"description": "ID of the city the street belongs to"})
+    start_location_id = fields.Int(required=True, metadata={"description": "ID of the starting location"})
+    end_location_id = fields.Int(required=True, metadata={"description": "ID of the ending location"})
+    length = fields.Float(required=True, metadata={"description": "Length of the street"})

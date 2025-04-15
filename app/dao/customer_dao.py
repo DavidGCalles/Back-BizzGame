@@ -1,0 +1,9 @@
+from app.dao.generic_dao import BaseDAO
+
+class CustomerDAO(BaseDAO):
+    """
+    DAO class for handling database operations related to the 'customer' table.
+    """
+    def __init__(self):
+        super().__init__()
+        self.table = "customer"
