@@ -2,7 +2,7 @@ from flask.views import MethodView
 from flask import jsonify
 from flask_smorest import Blueprint
 from app.dao.city_dao import CityDAO
-from app.models.city_schemas import CitySchema, UpdateCitySchema, PostCitySchema
+from app.models.city_schemas import CitySchema, UpdateCitySchema, PostCitySchema, SearchCitySchema
 from app.models.base_schema import SuccessResponseSchema, MessageResponseSchema
 
 # Blueprint
@@ -20,7 +20,7 @@ class CityCollection(MethodView):
         """
         GET method: Retrieve all cities.
         """
-        data = city_dao.generic_get_all()
+        data = city_dao.get_all_cities()
         return jsonify(data), 200
 
     @city_bp.arguments(PostCitySchema)
@@ -74,4 +74,31 @@ class CityResource(MethodView):
         if city_dao.generic_delete("id", city_id):
             return {"message": "City deleted successfully"}, 200
         return {"message": "City not found"}, 404
-    
+
+@city_bp.route('/city/search')
+class CitySearch(MethodView):
+    @city_bp.arguments(SearchCitySchema, location="query")  # Use the new schema
+    @city_bp.response(200, CitySchema(many=True), description="Cities successfully retrieved.")
+    @city_bp.response(400, MessageResponseSchema, description="Invalid search parameters.")
+    @city_bp.doc(summary="Search cities", description="Search cities by specific fields.")
+    def get(self, args):
+        """
+        GET method: Search cities by fields.
+
+        Query parameters:
+        - name: Name of the city (optional)
+        - population: Population of the city (optional)
+        - region: Region of the city (optional)
+        """
+        query_params = {key: value for key, value in args.items() if value is not None}
+
+        if not query_params:
+            return {"message": "No search parameters provided"}, 400
+
+        results = city_dao.generic_search(query_params, True)
+        if not results:
+            return {"message": "No cities found matching the criteria"}, 404
+        # Iterate over the array to get CitySchema jsons
+        for i in range(len(results)):
+            results[i] = CitySchema().from_array_to_json(results[i])
+        return jsonify(results), 200

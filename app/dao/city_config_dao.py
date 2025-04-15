@@ -1,4 +1,5 @@
 from app.dao.generic_dao import BaseDAO
+from app.models.city_config_schemas import CityConfigSchema
 
 class CityConfigDAO(BaseDAO):
     """
@@ -12,5 +13,5 @@ class CityConfigDAO(BaseDAO):
         """
         Get a single city configuration by difficulty level.
         """
-        return self.generic_get_by_field("difficulty_level", difficulty_level)[0]
+        return CityConfigSchema().from_array_to_json(self.generic_get_by_field("difficulty_level", difficulty_level))
    

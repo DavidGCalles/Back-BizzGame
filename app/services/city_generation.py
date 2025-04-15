@@ -1,9 +1,7 @@
 import random
 import heapq
-from app.dao.city_dao import CityDAO
-from app.dao.street_customer_dao import StreetDAO, CustomerDAO
 from app.dao.city_config_dao import CityConfigDAO
-from app.dao.location_dao import LocationDAO, LocationTypeDAO
+from app.dao.location_dao import LocationTypeDAO
 
 class CityGenerator:
     def __init__(self):
@@ -14,11 +12,7 @@ class CityGenerator:
         self.graph = {}  # Graph representation for routes
 
         # DAO instances
-        self.city_dao = CityDAO()
         self.city_config_dao = CityConfigDAO()
-        self.location_dao = LocationDAO()
-        self.street_dao = StreetDAO()
-        self.customer_dao = CustomerDAO()
         self.location_type_dao = LocationTypeDAO()
 
     def generate_random_name(self, base_name):
@@ -36,7 +30,7 @@ class CityGenerator:
         city = {
             "id": unique_name.split("_")[2],
             "name": unique_name,
-            "population": values["max_population"]* values["residential_rate"],
+            "population": int(values["max_population"]* values["residential_rate"]),
             "region": random.choice(["North", "South", "East", "West"])
         }
         self.city_id_counter += 1

@@ -60,4 +60,11 @@ class GenerateBoundedCitySchema(BaseSchema):
     difficulty_level = fields.Str(required=True,
                             validate=lambda x: x in ["easy", "medium", "hard"],
                             metadata={"description": "Difficulty level for city generation."})
-    
+
+class SearchCitySchema(BaseSchema):
+    """
+    SearchCitySchema: Class to manage the schema for searching cities.
+    """
+    name = fields.Str(required=False, metadata={"description": "Name of the city"})
+    population = fields.Int(required=False, metadata={"description": "Population of the city"})
+    region = fields.Str(required=False, metadata={"description": "Region of the city"})

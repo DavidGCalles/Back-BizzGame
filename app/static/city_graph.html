@@ -60,8 +60,8 @@
 
                 cities.forEach(city => {
                     const option = document.createElement("option");
-                    option.value = city[0]; // Assuming city.id is the unique identifier
-                    option.textContent = city[1];
+                    option.value = city.id; // Use city.id as the value
+                    option.textContent = city.name; // Use city.name as the display text
                     citySelect.appendChild(option);
                 });
             } catch (error) {

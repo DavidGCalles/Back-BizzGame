@@ -71,6 +71,7 @@ class BoundedCityGenerate(MethodView):
         data = generator.generate_bounded_city_data(
             difficulty_level=args.get("difficulty_level")
         )
+        print(data)
         for city in data["cities"]:
             city_dao.generic_insert(city)
         for location in data["locations"]:

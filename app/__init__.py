@@ -13,6 +13,7 @@ from app.routes.city_config_crud import city_config_bp
 from app.routes.location_crud import location_bp, location_type_bp
 from app.routes.street_customer_crud import street_bp, customer_bp
 from app.routes.generation_crud import generation_bp
+from app.routes.admin import admin_bp
 from app.services.db import DBManager
 from config import Config
 
@@ -33,7 +34,7 @@ def create_app():
         app.config['SWAGGER_UI_HOST'] = os.getenv("SWAGGER_HOST")
     origins_allowed = []
     if Config.FLASK_ENV is None or Config.FLASK_ENV == "development":
-        origins_allowed.append("http://localhost:8080")
+        origins_allowed.append("*")
     else:
         origins_allowed.append("https://front-arquetipo-856517455627.europe-southwest1.run.app")
     CORS(app, origins=origins_allowed,
@@ -42,6 +43,7 @@ def create_app():
     api = Api(app)
 
     api.register_blueprint(main_bp)
+    api.register_blueprint(admin_bp)
     api.register_blueprint(city_bp)
     api.register_blueprint(city_config_bp)
     api.register_blueprint(location_bp)

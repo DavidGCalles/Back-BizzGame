@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streets Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body class="bg-light">
+    <div class="container my-4">
+        <h1 class="text-center mb-4">Streets Management</h1>
+        <div class="d-flex justify-content-between mb-3">
+            <button class="btn btn-success" onclick="openCreateStreetModal()">Create Street</button>
+        </div>
+
+        <!-- Search Form -->
+        <div class="mb-3">
+            <form id="searchStreetForm" onsubmit="searchStreets(event)">
+                <div class="row">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="searchStreetField" placeholder="Field (e.g., name)">
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="searchStreetValue" placeholder="Value">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Length</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="streets-table-body">
+                <!-- Rows will be dynamically populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Edit Street Modal -->
+    <div class="modal fade" id="editStreetModal" tabindex="-1" aria-labelledby="editStreetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editStreetModalLabel">Edit Street</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editStreetForm">
+                        <input type="hidden" id="editStreetId">
+                        <div class="mb-3">
+                            <label for="editStreetName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="editStreetName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editStreetLength" class="form-label">Length</label>
+                            <input type="number" class="form-control" id="editStreetLength" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveStreetChanges()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Street Modal -->
+    <div class="modal fade" id="createStreetModal" tabindex="-1" aria-labelledby="createStreetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createStreetModalLabel">Create Street</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createStreetForm">
+                        <div class="mb-3">
+                            <label for="createStreetName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="createStreetName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="createStreetLength" class="form-label">Length</label>
+                            <input type="number" class="form-control" id="createStreetLength" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="createStreet()">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const host = "http://192.168.1.78:5000/";
+        const apiUrl = `${host}street/`; // Adjust the base URL if needed
+
+        // Fetch streets and populate the table
+        async function fetchStreets() {
+            try {
+                const response = await axios.get(apiUrl);
+                const streets = response.data;
+
+                const tableBody = document.getElementById("streets-table-body");
+                tableBody.innerHTML = ""; // Clear existing rows
+
+                streets.forEach(street => {
+                    const row = document.createElement("tr");
+
+                    row.innerHTML = `
+                        <td>${street.id}</td>
+                        <td>${street.name}</td>
+                        <td>${parseFloat(street.length).toFixed(2)}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteStreet(${street.id})">Delete</button>
+                            <button class="btn btn-primary btn-sm" onclick="openEditModal(${street.id}, '${street.name}', ${street.length})">Edit</button>
+                        </td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error fetching streets:", error);
+                alert("Failed to fetch streets. Please try again later.");
+            }
+        }
+
+        // Delete a street
+        async function deleteStreet(streetId) {
+            if (!confirm("Are you sure you want to delete this street?")) {
+                return;
+            }
+
+            try {
+                await axios.delete(`${apiUrl}${streetId}`);
+                alert("Street deleted successfully.");
+                fetchStreets(); // Refresh the table
+            } catch (error) {
+                console.error("Error deleting street:", error);
+                alert("Failed to delete street. Please try again later.");
+            }
+        }
+
+        function openEditModal(id, name, length) {
+            document.getElementById("editStreetId").value = id;
+            document.getElementById("editStreetName").value = name;
+            document.getElementById("editStreetLength").value = length;
+
+            const modal = new bootstrap.Modal(document.getElementById("editStreetModal"));
+            modal.show();
+        }
+
+        async function saveStreetChanges() {
+            const id = document.getElementById("editStreetId").value;
+            const name = document.getElementById("editStreetName").value;
+            const length = document.getElementById("editStreetLength").value;
+
+            try {
+                await axios.patch(`${apiUrl}/${id}`, {
+                    name: name,
+                    length: parseFloat(length)
+                });
+                alert("Street updated successfully.");
+                fetchStreets(); // Refresh the table
+                const modal = bootstrap.Modal.getInstance(document.getElementById("editStreetModal"));
+                modal.hide();
+            } catch (error) {
+                console.error("Error updating street:", error);
+                alert("Failed to update street. Please try again later.");
+            }
+        }
+
+        function openCreateStreetModal() {
+            const modal = new bootstrap.Modal(document.getElementById("createStreetModal"));
+            modal.show();
+        }
+
+        async function createStreet() {
+            const name = document.getElementById("createStreetName").value;
+            const length = document.getElementById("createStreetLength").value;
+
+            try {
+                await axios.post(apiUrl, { name, length: parseFloat(length) });
+                alert("Street created successfully.");
+                fetchStreets();
+                const modal = bootstrap.Modal.getInstance(document.getElementById("createStreetModal"));
+                modal.hide();
+            } catch (error) {
+                console.error("Error creating street:", error);
+                alert("Failed to create street. Please try again later.");
+            }
+        }
+
+        async function searchStreets(event) {
+            event.preventDefault();
+            const field = document.getElementById("searchStreetField").value;
+            const value = document.getElementById("searchStreetValue").value;
+
+            if (!field || !value) {
+                alert("Please provide both field and value for the search.");
+                return;
+            }
+
+            try {
+                // Construct query parameters
+                const params = new URLSearchParams();
+                params.append(field, value);
+
+                // Send GET request with query parameters
+                const response = await axios.get(`${apiUrl}search?${params.toString()}`);
+                const streets = response.data;
+
+                const tableBody = document.getElementById("streets-table-body");
+                tableBody.innerHTML = ""; // Clear existing rows
+
+                streets.forEach(street => {
+                    const row = document.createElement("tr");
+
+                    row.innerHTML = `
+                        <td>${street.id}</td>
+                        <td>${street.name}</td>
+                        <td>${parseFloat(street.length).toFixed(2)}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteStreet(${street.id})">Delete</button>
+                            <button class="btn btn-primary btn-sm" onclick="openEditModal(${street.id}, '${street.name}', ${street.length})">Edit</button>
+                        </td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error searching streets:", error);
+                alert("Failed to search streets. Please try again later.");
+            }
+        }
+
+        // Initialize the table on page load
+        fetchStreets();
+    </script>
+</body>
+</html>
