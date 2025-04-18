@@ -35,7 +35,7 @@ def create_app():
         app.config['SWAGGER_UI_HOST'] = os.getenv("SWAGGER_HOST")
     origins_allowed = []
     if Config.FLASK_ENV is None or Config.FLASK_ENV == "development":
-        origins_allowed.append("*")
+        origins_allowed.append("http://192.168.1.78:8080")
     else:
         origins_allowed.append("https://front-arquetipo-856517455627.europe-southwest1.run.app")
     CORS(app, origins=origins_allowed,
